@@ -32,23 +32,47 @@ Today, we will be considering `att_chg` as a function of `treatment`.
 
 * Create the mathematical formula for that model here.
 
+$$ att\_chg_i = \beta_1 x_{t,i} + \beta_2 x_{c,i} + \epsilon_i$$
+
 * Describe the ideal Preceptor Table.
+
+It would have entries for every single persion in the population including Preceptor and values for both treated and control. If there were an entry for Preceptor, then we would have values for treated and control and then our question
+would be easily answered.
 
 * Write a few sentences about whether or not our data will allow us to answer this question.
 
-
+Our data will allow us to answer this question for a random person. This data is not exchangeable (Preceptor comes from a different population that has read the paper).
 
 ## Scene 2
 
 **Prompt:** There are two ways to interpret our question. The first involves our expectation. We can also think of this as the long-term average, if we did the same experiment over and over again. (Assume that Preceptor is always assigned to the treatment.) What is your posterior probability distribution for Preceptor's *expected* `att_chg`?
 
+```{r}
+fit_obj <- stan_glm(data = week_8,
+         att_chg ~ treatment - 1,
+         refresh = FALSE)
 
+fit_obj %>% 
+  as_tibble() %>% 
+  ggplot(aes(x = treatmentTreated)) +
+    geom_histogram(aes(y = after_stat(count/sum(count))), bins = 30)
+```
 
 ## Scene 3
 
 **Prompt:** The second way to interpret the question is with regard to a single individual. What will happen to Preceptor next week? Provide a Posterior Predictive Distribution for what you predict will be Preceptor's `att_chg` after treatment.
 
+```{r}
+new_data <- tibble(treatment = "Treated")
 
+pp <- posterior_predict(fit_obj, new_data) %>% 
+  as_tibble() %>% 
+  mutate(across(everything(), as.numeric))
+
+pp %>% 
+  ggplot(aes(x = `1`)) +
+    geom_histogram(aes(y = after_stat(count/sum(count))), bins = 30)
+```
 
 ## Challenge Problem
 
